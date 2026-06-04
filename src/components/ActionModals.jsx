@@ -21,7 +21,7 @@ export function ApproveModal({ ids, orders, onConfirm, onClose }) {
             <div key={o.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'var(--text-secondary)', padding: '3px 0' }}>
               <span style={{ fontFamily: 'var(--mono)' }}>{o.orderId}</span>
               <span>{o.vendor}</span>
-              <span style={{ fontFamily: 'var(--mono)', fontWeight: 600 }}>₹{o.amount.toLocaleString('en-IN')}</span>
+              <span style={{ fontFamily: 'var(--mono)', fontWeight: 600 }}>₹{Number(o.amount || 0).toLocaleString('en-IN')}</span>
             </div>
           ))}
         </div>

@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react'
-import { Search, Filter, Download, CheckCircle, XCircle, Eye, ChevronDown, RefreshCw, CheckSquare, Square } from 'lucide-react'
+import { Search, Filter, Download, CheckCircle, XCircle, Eye, ChevronDown, RefreshCw, CheckSquare, Square, Loader2 } from 'lucide-react'
 import { useApprovals } from '../context/ApprovalsContext'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
@@ -7,24 +7,23 @@ import { ApproveModal, RejectModal } from './ActionModals'
 import PODetailModal from './PODetailModal'
 
 const TABS = ['Employee Requests', 'Procurement Requests', 'Purchase Orders', 'Payment']
-const DEPTS = ['All', 'Projects', 'Engineering', 'HR & Admin', 'Admin', 'EHS', 'Design', 'Marketing']
 const STATUSES = ['All', 'Pending', 'Approved', 'Rejected']
-const PROJECTS = ['All Projects', 'Project - R & M (GETT)', 'Project - R & M (GEBB-I)', 'Project - Civil (GETT Phase 2)', 'Electrical Upgrade — Block C', 'Corporate Office Furnishing', 'Site Safety Compliance — All Sites', 'Design Department Licensing', 'Plumbing Works — Tower B', 'General — Corporate Office', 'Brand & Marketing — Q4 2024']
 
 function fmt(n) { return '₹' + n.toLocaleString('en-IN') }
-function fmtDate(d) { return new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) }
+function fmtDate(d) { if (!d) return '-'; return new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) }
 
 export default function ApprovalsPage() {
-  const { orders, approve, reject, reset, stats } = useApprovals()
+  const { orders, approve, reject, reset, stats, loading, error, refetch } = useApprovals()
   const { user } = useAuth()
   const toast = useToast()
 
   const [tab, setTab] = useState('Purchase Orders')
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('All')
-  const [deptFilter, setDeptFilter] = useState('All')
-  const [projectFilter, setProjectFilter] = useState('All Projects')
   const [vendorFilter, setVendorFilter] = useState('')
+
+  // Derive unique vendors dynamically from actual data
+  const uniqueVendors = useMemo(() => [...new Set(orders.map(o => o.vendor).filter(Boolean))], [orders])
   const [selected, setSelected] = useState([])
   const [viewPO, setViewPO] = useState(null)
   const [approveIds, setApproveIds] = useState(null)
@@ -33,14 +32,12 @@ export default function ApprovalsPage() {
   const filtered = useMemo(() => {
     return orders.filter(o => {
       const s = search.toLowerCase()
-      if (s && !o.requestId.toLowerCase().includes(s) && !o.orderId.toLowerCase().includes(s) && !o.vendor.toLowerCase().includes(s) && !o.products.toLowerCase().includes(s) && !o.project.toLowerCase().includes(s)) return false
+      if (s && !o.orderId.toLowerCase().includes(s) && !o.vendor.toLowerCase().includes(s) && !o.products.toLowerCase().includes(s) && !(o.rawStatus || '').toLowerCase().includes(s)) return false
       if (statusFilter !== 'All' && o.status !== statusFilter) return false
-      if (deptFilter !== 'All' && o.department !== deptFilter) return false
-      if (projectFilter !== 'All Projects' && o.project !== projectFilter) return false
-      if (vendorFilter && !o.vendor.toLowerCase().includes(vendorFilter.toLowerCase())) return false
+      if (vendorFilter && o.vendor !== vendorFilter) return false
       return true
     })
-  }, [orders, search, statusFilter, deptFilter, projectFilter, vendorFilter])
+  }, [orders, search, statusFilter, vendorFilter])
 
   const pendingFiltered = filtered.filter(o => o.status === 'Pending')
   const allSelectedPending = pendingFiltered.length > 0 && pendingFiltered.every(o => selected.includes(o.id))
@@ -82,11 +79,8 @@ export default function ApprovalsPage() {
           <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>Review and action procurement approval requests</div>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
-          <select className="select" value={projectFilter} onChange={e => setProjectFilter(e.target.value)} style={{ fontSize: 12 }}>
-            {PROJECTS.map(p => <option key={p}>{p}</option>)}
-          </select>
-          <button className="btn btn-ghost btn-sm" onClick={reset} title="Reset to demo data">
-            <RefreshCw size={13} /> Reset
+          <button className="btn btn-ghost btn-sm" onClick={refetch} title="Refresh from database">
+            <RefreshCw size={13} style={loading ? { animation: 'spin 1s linear infinite' } : {}} /> Refresh
           </button>
         </div>
       </div>
@@ -123,15 +117,12 @@ export default function ApprovalsPage() {
             <div style={{ padding: '14px 16px', borderBottom: '1px solid var(--border)', display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
               <div style={{ position: 'relative', flex: '1 1 200px', minWidth: 180 }}>
                 <Search size={14} color="var(--text-muted)" style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
-                <input className="input" value={search} onChange={e => setSearch(e.target.value)} placeholder="Request ID/Order ID" style={{ paddingLeft: 32, fontSize: 12 }} />
+                <input className="input" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search Order ID, Vendor, Product..." style={{ paddingLeft: 32, fontSize: 12 }} />
               </div>
               <span style={{ fontSize: 12, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>Filter By:</span>
-              <select className="select" value={projectFilter} onChange={e => setProjectFilter(e.target.value)} style={{ fontSize: 12, flex: '1 1 160px' }}>
-                {PROJECTS.map(p => <option key={p}>{p}</option>)}
-              </select>
               <select className="select" value={vendorFilter} onChange={e => setVendorFilter(e.target.value)} style={{ fontSize: 12, flex: '0 1 160px' }}>
                 <option value="">- Vendor -</option>
-                {[...new Set(orders.map(o => o.vendor))].map(v => <option key={v} value={v}>{v}</option>)}
+                {uniqueVendors.map(v => <option key={v} value={v}>{v}</option>)}
               </select>
               <select className="select" value={statusFilter} onChange={e => setStatusFilter(e.target.value)} style={{ fontSize: 12, flex: '0 1 120px' }}>
                 {STATUSES.map(s => <option key={s} value={s}>{s === 'All' ? '- Status -' : s}</option>)}
@@ -155,7 +146,28 @@ export default function ApprovalsPage() {
               </div>
             )}
 
+            {/* Loading state */}
+            {loading && orders.length === 0 && (
+              <div style={{ padding: '60px 24px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                <Loader2 size={28} style={{ animation: 'spin 1s linear infinite', marginBottom: 12 }} />
+                <div style={{ fontSize: 14 }}>Loading orders from database…</div>
+              </div>
+            )}
+
+            {/* Error state */}
+            {error && orders.length === 0 && (
+              <div style={{ padding: '60px 24px', textAlign: 'center', color: 'var(--red)' }}>
+                <div style={{ fontSize: 32, marginBottom: 10 }}>⚠️</div>
+                <div style={{ fontSize: 14, fontWeight: 500, marginBottom: 6 }}>Failed to load orders</div>
+                <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 16 }}>{error}</div>
+                <button className="btn btn-ghost" onClick={refetch}>
+                  <RefreshCw size={13} /> Retry
+                </button>
+              </div>
+            )}
+
             {/* Desktop Table */}
+            {!loading || orders.length > 0 ? (
             <div className="desktop-table">
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                 <thead>
@@ -165,7 +177,7 @@ export default function ApprovalsPage() {
                         {allSelectedPending ? <CheckSquare size={16} color="var(--navy)" /> : <Square size={16} />}
                       </button>
                     </th>
-                    {['Request ID', 'Order ID', 'Project', 'Products', 'Shipping Address', 'Vendor', 'Amount', 'Status', 'Actions'].map(h => (
+                    {['Order ID', 'Product', 'Vendor', 'Qty', 'Unit Price', 'Total', 'Type', 'Status', 'Actions'].map(h => (
                       <th key={h} style={{ padding: '10px 12px', textAlign: 'left', fontWeight: 600, fontSize: 12, color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>{h}</th>
                     ))}
                   </tr>
@@ -173,7 +185,7 @@ export default function ApprovalsPage() {
                 <tbody>
                   {filtered.length === 0 ? (
                     <tr>
-                      <td colSpan={9} style={{ padding: '48px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 14 }}>
+                      <td colSpan={10} style={{ padding: '48px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 14 }}>
                         No orders match your filters
                       </td>
                     </tr>
@@ -193,15 +205,15 @@ export default function ApprovalsPage() {
                           </button>
                         )}
                       </td>
-                      <td style={{ padding: '10px 12px', fontFamily: 'var(--mono)', fontSize: 12, color: 'var(--navy)', fontWeight: 500 }}>{o.requestId}</td>
                       <td style={{ padding: '10px 12px', fontFamily: 'var(--mono)', fontSize: 12, color: 'var(--navy)', fontWeight: 500 }}>{o.orderId}</td>
-                      <td style={{ padding: '10px 12px', color: 'var(--text-primary)', maxWidth: 160, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={o.project}>{o.project}</td>
                       <td style={{ padding: '10px 12px', color: 'var(--text-secondary)', maxWidth: 260, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={o.products}>{o.products}</td>
-                      <td style={{ padding: '10px 12px', color: 'var(--text-muted)', fontSize: 12, maxWidth: 180, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={o.shippingAddress}>{o.shippingAddress.split(',')[0]}</td>
                       <td style={{ padding: '10px 12px', color: 'var(--text-secondary)', fontSize: 12, whiteSpace: 'nowrap' }}>{o.vendor}</td>
+                      <td style={{ padding: '10px 12px', fontFamily: 'var(--mono)', fontSize: 12, color: 'var(--text-secondary)' }}>{o.quantity} {o.measurementUnit}</td>
+                      <td style={{ padding: '10px 12px', fontFamily: 'var(--mono)', fontSize: 12, color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>{fmt(o.unitPrice)}</td>
                       <td style={{ padding: '10px 12px', fontFamily: 'var(--mono)', fontSize: 12, fontWeight: 600, color: 'var(--text-primary)', whiteSpace: 'nowrap' }}>{fmt(o.amount)}</td>
+                      <td style={{ padding: '10px 12px', color: 'var(--text-secondary)', fontSize: 12 }}>{o.type}</td>
                       <td style={{ padding: '10px 12px' }}>
-                        <span className={`badge badge-${o.status.toLowerCase()}`}>{o.status}</span>
+                        <span className={`badge badge-${o.status.toLowerCase()}`} title={o.rawStatus}>{o.rawStatus || o.status}</span>
                       </td>
                       <td style={{ padding: '10px 8px' }}>
                         <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
@@ -223,6 +235,7 @@ export default function ApprovalsPage() {
                 </tbody>
               </table>
             </div>
+            ) : null}
 
             {/* Mobile Cards */}
             <div className="mobile-cards" style={{ display: 'none', padding: '12px', gap: 10, flexDirection: 'column' }}>
@@ -233,12 +246,12 @@ export default function ApprovalsPage() {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                     <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                       <span style={{ fontFamily: 'var(--mono)', fontSize: 12, fontWeight: 700, color: 'var(--navy)' }}>{o.orderId}</span>
-                      <span style={{ fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--text-muted)' }}>{o.requestId}</span>
+                      <span style={{ fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--text-muted)' }}>{o.type}</span>
                     </div>
-                    <span className={`badge badge-${o.status.toLowerCase()}`}>{o.status}</span>
+                    <span className={`badge badge-${o.status.toLowerCase()}`}>{o.rawStatus || o.status}</span>
                   </div>
-                  <div style={{ fontSize: 13, color: 'var(--text-primary)', marginBottom: 4, fontWeight: 500 }}>{o.project}</div>
-                  <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 4, lineHeight: 1.4, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{o.products}</div>
+                  <div style={{ fontSize: 13, color: 'var(--text-primary)', marginBottom: 4, fontWeight: 500 }}>{o.products}</div>
+                  <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 4, lineHeight: 1.4 }}>{o.quantity} {o.measurementUnit} × {fmt(o.unitPrice)}</div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--border)' }}>
                     <div>
                       <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{o.vendor}</div>
@@ -283,6 +296,7 @@ export default function ApprovalsPage() {
       {rejectIds && <RejectModal ids={rejectIds} orders={orders} onConfirm={reason => doReject(rejectIds, reason)} onClose={() => setRejectIds(null)} />}
 
       <style>{`
+        @keyframes spin { to { transform: rotate(360deg) } }
         @media (max-width: 768px) {
           .desktop-table { display: none !important; }
           .mobile-cards { display: flex !important; }

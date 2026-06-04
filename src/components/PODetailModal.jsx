@@ -1,8 +1,8 @@
 import React from 'react'
-import { X, CheckCircle, XCircle, Building2, MapPin, User, Calendar, Hash } from 'lucide-react'
+import { X, CheckCircle, XCircle, Building2, MapPin, User, Calendar, Hash, Package, FileText, CreditCard } from 'lucide-react'
 
-function fmt(n) { return '₹' + n.toLocaleString('en-IN') }
-function fmtDate(d) { return new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) }
+function fmt(n) { return '₹' + Number(n || 0).toLocaleString('en-IN') }
+function fmtDate(d) { if (!d) return '-'; return new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) }
 
 export default function PODetailModal({ po, onClose, onApprove, onReject }) {
   if (!po) return null
@@ -29,9 +29,9 @@ export default function PODetailModal({ po, onClose, onApprove, onReject }) {
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4, flexWrap: 'wrap' }}>
               <span style={{ fontSize: 17, fontWeight: 700, color: 'var(--text-primary)', fontFamily: 'var(--mono)' }}>{po.orderId}</span>
-              <span className={`badge badge-${po.status.toLowerCase()}`}>{po.status}</span>
+              <span className={`badge badge-${po.status.toLowerCase()}`}>{po.rawStatus || po.status}</span>
             </div>
-            <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>Request: {po.requestId} • {fmtDate(po.date)}</div>
+            <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{po.type ? `${po.type} • ` : ''}{fmtDate(po.date)}</div>
           </div>
           <button className="btn-icon" onClick={onClose} style={{ flexShrink: 0 }}><X size={20} /></button>
         </div>
@@ -39,12 +39,12 @@ export default function PODetailModal({ po, onClose, onApprove, onReject }) {
         {/* Scrollable body */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px', WebkitOverflowScrolling: 'touch' }}>
 
-          {/* Info grid — 2 col on all sizes */}
+          {/* Info grid */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
             {[
               { icon: Building2, label: 'Vendor', value: po.vendor },
-              { icon: User, label: 'Requested By', value: po.requestedBy },
-              { icon: Hash, label: 'Department', value: po.department },
+              { icon: Package, label: 'Product', value: po.products },
+              { icon: Hash, label: 'Type', value: po.type || '-' },
               { icon: Calendar, label: 'Date', value: fmtDate(po.date) },
             ].map(({ icon: Icon, label, value }) => (
               <div key={label} style={{ background: 'var(--surface)', borderRadius: 10, padding: '10px 12px' }}>
@@ -57,23 +57,32 @@ export default function PODetailModal({ po, onClose, onApprove, onReject }) {
             ))}
           </div>
 
-          {/* Shipping */}
-          <div style={{ marginBottom: 12, background: 'var(--surface)', borderRadius: 10, padding: '10px 12px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 3 }}>
-              <MapPin size={12} color="var(--text-muted)" />
-              <span style={{ fontSize: 10, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: 600 }}>Shipping Address</span>
-            </div>
-            <div style={{ fontSize: 12, color: 'var(--text-primary)', lineHeight: 1.5 }}>{po.shippingAddress}</div>
-          </div>
-
-          {po.vendorGST && (
-            <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 14 }}>
-              GST: <span style={{ fontFamily: 'var(--mono)', color: 'var(--text-secondary)', fontWeight: 500 }}>{po.vendorGST}</span>
+          {/* Payment & Terms info */}
+          {(po.paymentTerms || po.termsConditions) && (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
+              {po.paymentTerms && (
+                <div style={{ background: 'var(--surface)', borderRadius: 10, padding: '10px 12px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 3 }}>
+                    <CreditCard size={12} color="var(--text-muted)" />
+                    <span style={{ fontSize: 10, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: 600 }}>Payment Terms</span>
+                  </div>
+                  <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-primary)', lineHeight: 1.3 }}>{po.paymentTerms}</div>
+                </div>
+              )}
+              {po.termsConditions && (
+                <div style={{ background: 'var(--surface)', borderRadius: 10, padding: '10px 12px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 3 }}>
+                    <FileText size={12} color="var(--text-muted)" />
+                    <span style={{ fontSize: 10, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: 600 }}>Terms & Conditions</span>
+                  </div>
+                  <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-primary)', lineHeight: 1.3 }}>{po.termsConditions}</div>
+                </div>
+              )}
             </div>
           )}
 
-          {/* Line Items label */}
-          <div style={{ marginBottom: 8, fontSize: 11, fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Line Items</div>
+          {/* Cost Breakdown */}
+          <div style={{ marginBottom: 8, fontSize: 11, fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Cost Breakdown</div>
 
           {/* Mobile: stacked cards instead of table */}
           <div className="line-items-mobile" style={{ display: 'none', flexDirection: 'column', gap: 8, marginBottom: 12 }}>
@@ -87,9 +96,32 @@ export default function PODetailModal({ po, onClose, onApprove, onReject }) {
                 </div>
               </div>
             ))}
+            {/* Extra cost rows */}
+            {(po.taxAmount > 0 || po.discountAmount > 0 || po.shippingCharge > 0) && (
+              <div style={{ background: 'var(--surface)', borderRadius: 10, padding: '10px 12px' }}>
+                {po.taxAmount > 0 && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--text-secondary)', padding: '2px 0' }}>
+                    <span>Tax ({po.taxRate}%)</span>
+                    <span style={{ fontFamily: 'var(--mono)' }}>{fmt(po.taxAmount)}</span>
+                  </div>
+                )}
+                {po.discountAmount > 0 && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--green)', padding: '2px 0' }}>
+                    <span>Discount</span>
+                    <span style={{ fontFamily: 'var(--mono)' }}>-{fmt(po.discountAmount)}</span>
+                  </div>
+                )}
+                {po.shippingCharge > 0 && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--text-secondary)', padding: '2px 0' }}>
+                    <span>Shipping</span>
+                    <span style={{ fontFamily: 'var(--mono)' }}>{fmt(po.shippingCharge)}</span>
+                  </div>
+                )}
+              </div>
+            )}
             {/* Total row */}
             <div style={{ background: 'var(--blue-light)', borderRadius: 10, padding: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px solid var(--blue-mid)' }}>
-              <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)' }}>Total Amount</span>
+              <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)' }}>Final Total</span>
               <span style={{ fontSize: 18, fontWeight: 800, color: 'var(--navy)', fontFamily: 'var(--mono)' }}>{fmt(po.amount)}</span>
             </div>
           </div>
@@ -99,7 +131,7 @@ export default function PODetailModal({ po, onClose, onApprove, onReject }) {
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
               <thead>
                 <tr style={{ background: 'var(--surface)' }}>
-                  {['Item', 'Qty', 'Unit', 'Unit Price', 'Total'].map(h => (
+                  {['Item', 'Qty', 'Unit', 'Unit Price', 'Subtotal'].map(h => (
                     <th key={h} style={{ padding: '8px 10px', textAlign: h === 'Item' ? 'left' : 'right', fontWeight: 600, color: 'var(--text-secondary)', fontSize: 11, whiteSpace: 'nowrap' }}>{h}</th>
                   ))}
                 </tr>
@@ -114,8 +146,27 @@ export default function PODetailModal({ po, onClose, onApprove, onReject }) {
                     <td style={{ padding: '9px 10px', textAlign: 'right', fontWeight: 600, color: 'var(--text-primary)', fontFamily: 'var(--mono)', whiteSpace: 'nowrap' }}>{fmt(li.total)}</td>
                   </tr>
                 ))}
+                {/* Tax, discount, shipping rows */}
+                {po.taxAmount > 0 && (
+                  <tr style={{ borderTop: '1px solid var(--border)' }}>
+                    <td colSpan={4} style={{ padding: '7px 10px', textAlign: 'right', fontSize: 11, color: 'var(--text-secondary)' }}>Tax ({po.taxRate}%)</td>
+                    <td style={{ padding: '7px 10px', textAlign: 'right', fontFamily: 'var(--mono)', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>{fmt(po.taxAmount)}</td>
+                  </tr>
+                )}
+                {po.discountAmount > 0 && (
+                  <tr style={{ borderTop: '1px solid var(--border)' }}>
+                    <td colSpan={4} style={{ padding: '7px 10px', textAlign: 'right', fontSize: 11, color: 'var(--green)' }}>Discount</td>
+                    <td style={{ padding: '7px 10px', textAlign: 'right', fontFamily: 'var(--mono)', color: 'var(--green)', whiteSpace: 'nowrap' }}>-{fmt(po.discountAmount)}</td>
+                  </tr>
+                )}
+                {po.shippingCharge > 0 && (
+                  <tr style={{ borderTop: '1px solid var(--border)' }}>
+                    <td colSpan={4} style={{ padding: '7px 10px', textAlign: 'right', fontSize: 11, color: 'var(--text-secondary)' }}>Shipping</td>
+                    <td style={{ padding: '7px 10px', textAlign: 'right', fontFamily: 'var(--mono)', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>{fmt(po.shippingCharge)}</td>
+                  </tr>
+                )}
                 <tr style={{ borderTop: '2px solid var(--border)', background: 'var(--surface)' }}>
-                  <td colSpan={4} style={{ padding: '10px', fontWeight: 700, fontSize: 13, color: 'var(--text-primary)', textAlign: 'right' }}>Total Amount</td>
+                  <td colSpan={4} style={{ padding: '10px', fontWeight: 700, fontSize: 13, color: 'var(--text-primary)', textAlign: 'right' }}>Final Total</td>
                   <td style={{ padding: '10px', fontWeight: 800, fontSize: 15, color: 'var(--navy)', textAlign: 'right', fontFamily: 'var(--mono)', whiteSpace: 'nowrap' }}>{fmt(po.amount)}</td>
                 </tr>
               </tbody>
