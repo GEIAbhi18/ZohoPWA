@@ -4,7 +4,7 @@ import { X, CheckCircle, XCircle, Building2, MapPin, User, Calendar, Hash, Packa
 function fmt(n) { return '₹' + Number(n || 0).toLocaleString('en-IN') }
 function fmtDate(d) { if (!d) return '-'; return new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) }
 
-export default function PODetailModal({ po, onClose, onApprove, onReject }) {
+export default function PODetailModal({ po, onClose, onApprove, onReject, onOpenApproval }) {
   if (!po) return null
 
   return (
@@ -194,7 +194,7 @@ export default function PODetailModal({ po, onClose, onApprove, onReject }) {
             <button className="btn btn-danger" style={{ flex: 1, justifyContent: 'center' }} onClick={() => { onReject([po.id]); onClose() }}>
               <XCircle size={15} /> Reject
             </button>
-            <button className="btn btn-success" style={{ flex: 1, justifyContent: 'center' }} onClick={() => { onApprove([po.id]); onClose() }}>
+            <button className="btn btn-success" style={{ flex: 1, justifyContent: 'center' }} onClick={() => { if (onOpenApproval) { onOpenApproval(po) } else { onApprove([po.id]); onClose() } }}>
               <CheckCircle size={15} /> Approve
             </button>
           </div>

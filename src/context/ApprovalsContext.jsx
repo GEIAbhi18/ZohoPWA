@@ -118,20 +118,43 @@ export function ApprovalsProvider({ children }) {
   }, [fetchOrders])
 
   // ── Approve ──
-  async function approve(ids, _user) {
+  async function approve(ids, _user, approvalData = {}) {
     // Optimistic update
     setOrders(prev =>
       prev.map(o =>
         ids.includes(o.id) && o.status === 'Pending'
-          ? { ...o, status: 'Approved', rawStatus: 'Approved' }
+          ? {
+              ...o,
+              status: 'Approved',
+              rawStatus: 'Approved',
+              approvedBy: approvalData.approvedBy || _user || null,
+              approvedAt: approvalData.approvedAt || new Date().toISOString(),
+            }
           : o
       )
     )
 
+    // Build the update payload
+    const updatePayload = {
+      status: 'Approved',
+      updated_at: new Date().toISOString(),
+    }
+
+    // Add optional approval metadata if provided
+    if (approvalData.referenceNumber !== undefined) updatePayload.reference_number = approvalData.referenceNumber
+    if (approvalData.billingAddress !== undefined) updatePayload.billing_address = approvalData.billingAddress
+    if (approvalData.advanceAmount !== undefined) updatePayload.advance_amount = approvalData.advanceAmount
+    if (approvalData.comments !== undefined) updatePayload.approval_comments = approvalData.comments
+    if (approvalData.termsAndConditions !== undefined) updatePayload.approval_terms_conditions = approvalData.termsAndConditions
+    if (approvalData.attachmentUrl !== undefined) updatePayload.attachment_url = approvalData.attachmentUrl
+    if (approvalData.signatureImageUrl !== undefined) updatePayload.signature_url = approvalData.signatureImageUrl
+    if (approvalData.approvedBy) updatePayload.approved_by = approvalData.approvedBy
+    if (approvalData.approvedAt) updatePayload.approved_at = approvalData.approvedAt
+
     // Persist to Supabase
     const { error: sbError } = await supabase
       .from('purchase_orders_for_approval')
-      .update({ status: 'Approved', updated_at: new Date().toISOString() })
+      .update(updatePayload)
       .in('id', ids)
 
     if (sbError) {
@@ -139,6 +162,7 @@ export function ApprovalsProvider({ children }) {
       fetchOrders() // rollback optimistic update
     }
   }
+
 
   // ── Reject ──
   async function reject(ids, _reason, _user) {

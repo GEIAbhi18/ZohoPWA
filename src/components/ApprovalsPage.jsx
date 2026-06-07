@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import { ApproveModal, RejectModal } from './ActionModals'
 import PODetailModal from './PODetailModal'
+import POApprovalModal from './POApprovalModal'
 
 const TABS = ['Employee Requests', 'Procurement Requests', 'Purchase Orders', 'Payment']
 const STATUSES = ['All', 'Pending', 'Approved', 'Rejected']
@@ -28,6 +29,7 @@ export default function ApprovalsPage() {
   const [viewPO, setViewPO] = useState(null)
   const [approveIds, setApproveIds] = useState(null)
   const [rejectIds, setRejectIds] = useState(null)
+  const [approvingPO, setApprovingPO] = useState(null)
 
   const filtered = useMemo(() => {
     return orders.filter(o => {
@@ -221,7 +223,7 @@ export default function ApprovalsPage() {
                             <Eye size={14} />
                           </button>
                           {o.status === 'Pending' && <>
-                            <button className="btn btn-success btn-sm" style={{ padding: '4px 8px', fontSize: 11 }} onClick={() => setApproveIds([o.id])}>
+                            <button className="btn btn-success btn-sm" style={{ padding: '4px 8px', fontSize: 11 }} onClick={() => setApprovingPO(o)}>
                               <CheckCircle size={12} />
                             </button>
                             <button className="btn btn-danger btn-sm" style={{ padding: '4px 8px', fontSize: 11 }} onClick={() => setRejectIds([o.id])}>
@@ -264,7 +266,7 @@ export default function ApprovalsPage() {
                       <Eye size={13} /> View
                     </button>
                     {o.status === 'Pending' && <>
-                      <button className="btn btn-success btn-sm" style={{ flex: 1, justifyContent: 'center' }} onClick={() => setApproveIds([o.id])}>
+                      <button className="btn btn-success btn-sm" style={{ flex: 1, justifyContent: 'center' }} onClick={() => setApprovingPO(o)}>
                         <CheckCircle size={13} /> Approve
                       </button>
                       <button className="btn btn-danger btn-sm" style={{ flex: 1, justifyContent: 'center' }} onClick={() => setRejectIds([o.id])}>
@@ -291,9 +293,10 @@ export default function ApprovalsPage() {
       </div>
 
       {/* Modals */}
-      {viewPO && <PODetailModal po={viewPO} onClose={() => setViewPO(null)} onApprove={ids => doApprove(ids)} onReject={(ids, reason) => doReject(ids, reason)} />}
+      {viewPO && <PODetailModal po={viewPO} onClose={() => setViewPO(null)} onApprove={ids => doApprove(ids)} onReject={(ids, reason) => doReject(ids, reason)} onOpenApproval={po => { setViewPO(null); setApprovingPO(po) }} />}
       {approveIds && <ApproveModal ids={approveIds} orders={orders} onConfirm={() => doApprove(approveIds)} onClose={() => setApproveIds(null)} />}
       {rejectIds && <RejectModal ids={rejectIds} orders={orders} onConfirm={reason => doReject(rejectIds, reason)} onClose={() => setRejectIds(null)} />}
+      {approvingPO && <POApprovalModal po={approvingPO} onClose={() => setApprovingPO(null)} />}
 
       <style>{`
         @keyframes spin { to { transform: rotate(360deg) } }
