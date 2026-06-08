@@ -16,13 +16,13 @@ export async function uploadSignature(canvasElement, poId) {
     })
     const filename = `signatures/sig_${poId}_${Date.now()}.png`
     const { data, error } = await supabase.storage
-      .from(BUCKET)
+      .from('signature')
       .upload(filename, blob, { contentType: 'image/png', upsert: true })
 
     if (error) throw error
 
     const { data: urlData } = supabase.storage
-      .from(BUCKET)
+      .from('signature')
       .getPublicUrl(filename)
 
     return urlData.publicUrl

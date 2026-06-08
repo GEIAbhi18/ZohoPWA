@@ -373,6 +373,7 @@ export default function POApprovalModal({ po, onClose }) {
   const [termsAndConditions, setTermsAndConditions] = useState(DEFAULT_TERMS)
   const [submitting, setSubmitting] = useState(false)
   const [showPreview, setShowPreview] = useState(false)
+  const [hasDrawnSignature, setHasDrawnSignature] = useState(false)
 
   // Prevent body scroll when modal is open
   useEffect(() => {
@@ -397,10 +398,13 @@ export default function POApprovalModal({ po, onClose }) {
       let attachmentUrl = null
 
       // Upload signature if drawn
-      if (canvasRef.current) {
-        const ctx = canvasRef.current.getContext('2d')
-        // Check if canvas has any drawing (not just baseline/watermark)
+      if (canvasRef.current && hasDrawnSignature) {
         signatureUrl = await uploadSignature(canvasRef.current, po.orderId)
+        if (!signatureUrl) {
+          toast('Signature upload failed. Please check Supabase Storage settings.', 'error')
+          setSubmitting(false)
+          return
+        }
       }
 
       // Upload attachment if selected
@@ -549,7 +553,10 @@ export default function POApprovalModal({ po, onClose }) {
               {/* Field 8: Approver Signature */}
               <div className="po-field">
                 <label className="po-field-label">APPROVER SIGNATURE</label>
-                <SignatureCanvas canvasRef={canvasRef} />
+                <SignatureCanvas 
+                  canvasRef={canvasRef} 
+                  onDrawStart={() => setHasDrawnSignature(true)} 
+                />
               </div>
             </div>
 
