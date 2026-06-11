@@ -183,7 +183,9 @@ export default function PODetailModal({ po, onClose, onApprove, onReject, onOpen
           {po.status === 'Approved' && (
             <div style={{ background: 'var(--green-bg)', border: '1px solid #86EFAC', borderRadius: 10, padding: '12px 14px', marginBottom: 12 }}>
               <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--green)', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Approved By</div>
-              <div style={{ fontSize: 13, color: 'var(--green-text)' }}>{po.approvedBy} on {po.approvedAt ? new Date(po.approvedAt).toLocaleString('en-IN') : '-'}</div>
+              <div style={{ fontSize: 13, color: 'var(--green-text)' }}>
+                {po.approvedBy || 'Unknown'} on {po.approvedAt ? new Date(po.approvedAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Kolkata' }) : '-'}
+              </div>
             </div>
           )}
         </div>

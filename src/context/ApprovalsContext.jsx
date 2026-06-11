@@ -44,6 +44,9 @@ function mapRow(row) {
     type: row.type || '',
     termsConditions: row.terms_conditions || '',
     paymentTerms: row.payment_terms || '',
+    approvedBy: row.approved_by || '',
+    approvedAt: row.approved_at || '',
+    rejectionReason: row.rejection_reason || '',
 
     // Construct a single-item lineItems array from flat columns
     lineItems: [
@@ -138,6 +141,8 @@ export function ApprovalsProvider({ children }) {
     const updatePayload = {
       status: 'Approved',
       updated_at: new Date().toISOString(),
+      approved_by: approvalData.approvedBy || _user || 'Unknown',
+      approved_at: approvalData.approvedAt || new Date().toISOString(),
     }
 
     // Add optional approval metadata if provided
@@ -148,8 +153,6 @@ export function ApprovalsProvider({ children }) {
     if (approvalData.termsAndConditions !== undefined) updatePayload.approval_terms_conditions = approvalData.termsAndConditions
     if (approvalData.attachmentUrl !== undefined) updatePayload.attachment_url = approvalData.attachmentUrl
     if (approvalData.signatureImageUrl !== undefined) updatePayload.signature_url = approvalData.signatureImageUrl
-    if (approvalData.approvedBy) updatePayload.approved_by = approvalData.approvedBy
-    if (approvalData.approvedAt) updatePayload.approved_at = approvalData.approvedAt
 
     // Persist to Supabase
     const { error: sbError } = await supabase
