@@ -1,20 +1,11 @@
 import React, { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import {
-  LayoutDashboard, ShoppingCart, CheckSquare, FileText, Package,
-  ClipboardList, Box, Folder, Search, FileStack, FileSignature,
-  Warehouse, Settings, ChevronDown, X, BarChart2, DollarSign, Monitor
+  ShoppingCart, CheckSquare, FileText,
+  ClipboardList, ChevronDown, X
 } from 'lucide-react'
 
 const NAV = [
-  {
-    id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard',
-    children: [
-      { label: 'Procurement Dashboard', path: '/dashboard' },
-      { label: 'Finance Dashboard', path: '/dashboard/finance' },
-      { label: 'VMS Dashboard', path: '/dashboard/vms' },
-    ]
-  },
   {
     id: 'purchase-request', label: 'Purchase Request', icon: ShoppingCart, path: '/purchase-request',
     children: [
@@ -26,31 +17,7 @@ const NAV = [
   },
   { id: 'approvals', label: 'Approvals', icon: CheckSquare, path: '/approvals' },
   { id: 'requests', label: 'Requests', icon: FileText, path: '/requests' },
-  { id: 'procurements', label: 'Procurements', icon: Package, path: '/procurements' },
   { id: 'orders', label: 'Orders', icon: ClipboardList, path: '/orders' },
-  { id: 'products', label: 'Products', icon: Box, path: '/products' },
-  { id: 'projects', label: 'Projects', icon: Folder, path: '/projects' },
-  { id: 'screening', label: 'Screening', icon: Search, path: '/screening' },
-  { id: 'rfp', label: 'RFP', icon: FileStack, path: '/rfp' },
-  { id: 'contracts', label: 'Contracts', icon: FileSignature, path: '/contracts' },
-  {
-    id: 'inventory', label: 'Inventory', icon: Warehouse, path: '/inventory',
-    children: [
-      { label: 'Warehouses', path: '/inventory/warehouses' },
-      { label: 'Warehouse Requests', path: '/inventory/warehouse-requests' },
-    ]
-  },
-  {
-    id: 'setup', label: 'Setup', icon: Settings, path: '/setup',
-    children: [
-      { label: 'Vendors', path: '/setup/vendors' },
-      { label: 'Products', path: '/setup/products' },
-      { label: 'Users', path: '/setup/users' },
-      { label: 'Approval Setup', path: '/setup/approval-setup' },
-      { label: 'Preferences', path: '/setup/preferences' },
-      { label: 'Vendor Preferences', path: '/setup/vendor-preferences' },
-    ]
-  },
 ]
 
 export default function Sidebar({ onClose }) {
@@ -58,7 +25,7 @@ export default function Sidebar({ onClose }) {
   const navigate = useNavigate()
   const [open, setOpen] = useState(() => {
     const active = NAV.find(n => location.pathname.startsWith(n.path))
-    return active?.children ? { [active.id]: true } : { dashboard: true }
+    return active?.children ? { [active.id]: true } : {}
   })
 
   function toggle(id) {

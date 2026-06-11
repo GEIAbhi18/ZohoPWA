@@ -3,6 +3,7 @@ import { Search, Filter, Download, CheckCircle, XCircle, Eye, ChevronDown, Refre
 import { useApprovals } from '../context/ApprovalsContext'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
+import { useNotifications } from '../context/NotificationContext'
 import { ApproveModal, RejectModal } from './ActionModals'
 import PODetailModal from './PODetailModal'
 import POApprovalModal from './POApprovalModal'
@@ -17,6 +18,7 @@ export default function ApprovalsPage() {
   const { orders, approve, reject, reset, stats, loading, error, refetch } = useApprovals()
   const { user } = useAuth()
   const toast = useToast()
+  const { addNotification } = useNotifications()
 
   const [tab, setTab] = useState('Purchase Orders')
   const [search, setSearch] = useState('')
@@ -54,15 +56,19 @@ export default function ApprovalsPage() {
   }
 
   function doApprove(ids) {
+    const orderNames = orders.filter(o => ids.includes(o.id)).map(o => o.orderId).join(', ')
     approve(ids, user?.name)
     setSelected([])
     toast(`${ids.length} order(s) approved successfully`, 'success')
+    addNotification('PO Approved', `${orderNames} approved by ${user?.name || 'User'}`, 'approval')
   }
 
   function doReject(ids, reason) {
+    const orderNames = orders.filter(o => ids.includes(o.id)).map(o => o.orderId).join(', ')
     reject(ids, reason, user?.name)
     setSelected([])
     toast(`${ids.length} order(s) rejected`, 'error')
+    addNotification('PO Rejected', `${orderNames} rejected${reason ? ': ' + reason : ''}`, 'rejection')
   }
 
   const statCards = [

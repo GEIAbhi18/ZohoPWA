@@ -3,6 +3,7 @@ import { X, CheckCircle, Upload, ChevronDown, ChevronUp, Loader2, Search } from 
 import { useApprovals } from '../context/ApprovalsContext'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
+import { useNotifications } from '../context/NotificationContext'
 import { uploadSignature, uploadAttachment } from '../lib/supabaseStorage'
 
 const BILLING_ADDRESSES = [
@@ -362,6 +363,7 @@ export default function POApprovalModal({ po, onClose }) {
   const { approve } = useApprovals()
   const { user } = useAuth()
   const toast = useToast()
+  const { addNotification } = useNotifications()
   const canvasRef = useRef(null)
 
   // Form state
@@ -433,6 +435,7 @@ export default function POApprovalModal({ po, onClose }) {
 
       await approve([po.id], user?.name, approvalData)
       toast(`PO ${po.orderId} approved successfully`, 'success')
+      addNotification('PO Approved', `${po.orderId} — ${po.vendor} — ₹${Number(po.amount || 0).toLocaleString('en-IN')} approved`, 'approval')
       onClose()
     } catch (err) {
       console.error('Approval failed:', err)
