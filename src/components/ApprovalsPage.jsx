@@ -57,7 +57,8 @@ export default function ApprovalsPage() {
 
   function doApprove(ids) {
     const orderNames = orders.filter(o => ids.includes(o.id)).map(o => o.orderId).join(', ')
-    approve(ids, user?.name)
+    const dbIds = orders.filter(o => ids.includes(o.id)).flatMap(o => o.dbIds || [o.id])
+    approve(dbIds, user?.name)
     setSelected([])
     toast(`${ids.length} order(s) approved successfully`, 'success')
     addNotification('PO Approved', `${orderNames} approved by ${user?.name || 'User'}`, 'approval')
@@ -65,7 +66,8 @@ export default function ApprovalsPage() {
 
   function doReject(ids, reason) {
     const orderNames = orders.filter(o => ids.includes(o.id)).map(o => o.orderId).join(', ')
-    reject(ids, reason, user?.name)
+    const dbIds = orders.filter(o => ids.includes(o.id)).flatMap(o => o.dbIds || [o.id])
+    reject(dbIds, reason, user?.name)
     setSelected([])
     toast(`${ids.length} order(s) rejected`, 'error')
     addNotification('PO Rejected', `${orderNames} rejected${reason ? ': ' + reason : ''}`, 'rejection')
@@ -214,10 +216,40 @@ export default function ApprovalsPage() {
                         )}
                       </td>
                       <td style={{ padding: '10px 12px', fontFamily: 'var(--mono)', fontSize: 12, color: 'var(--navy)', fontWeight: 500 }}>{o.orderId}</td>
-                      <td style={{ padding: '10px 12px', color: 'var(--text-secondary)', maxWidth: 260, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={o.products}>{o.products}</td>
+                      <td style={{ padding: '10px 12px', color: 'var(--text-secondary)', maxWidth: 260 }}>
+                        {o.lineItems && o.lineItems.length > 0 ? (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                            {o.lineItems.map((li, idx) => (
+                              <div key={idx} style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={li.name}>{li.name}</div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={o.products}>{o.products}</div>
+                        )}
+                      </td>
                       <td style={{ padding: '10px 12px', color: 'var(--text-secondary)', fontSize: 12, whiteSpace: 'nowrap' }}>{o.vendor}</td>
-                      <td style={{ padding: '10px 12px', fontFamily: 'var(--mono)', fontSize: 12, color: 'var(--text-secondary)' }}>{o.quantity} {o.measurementUnit}</td>
-                      <td style={{ padding: '10px 12px', fontFamily: 'var(--mono)', fontSize: 12, color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>{fmt(o.unitPrice)}</td>
+                      <td style={{ padding: '10px 12px', fontFamily: 'var(--mono)', fontSize: 12, color: 'var(--text-secondary)' }}>
+                        {o.lineItems && o.lineItems.length > 0 ? (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                            {o.lineItems.map((li, idx) => (
+                              <div key={idx} style={{ whiteSpace: 'nowrap' }}>{li.qty} {li.unit}</div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div>{o.quantity} {o.measurementUnit}</div>
+                        )}
+                      </td>
+                      <td style={{ padding: '10px 12px', fontFamily: 'var(--mono)', fontSize: 12, color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
+                        {o.lineItems && o.lineItems.length > 0 ? (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                            {o.lineItems.map((li, idx) => (
+                              <div key={idx}>{fmt(li.unitPrice)}</div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div>{fmt(o.unitPrice)}</div>
+                        )}
+                      </td>
                       <td style={{ padding: '10px 12px', fontFamily: 'var(--mono)', fontSize: 12, fontWeight: 600, color: 'var(--text-primary)', whiteSpace: 'nowrap' }}>{fmt(o.amount)}</td>
                       <td style={{ padding: '10px 12px', color: 'var(--text-secondary)', fontSize: 12 }}>{o.type}</td>
                       <td style={{ padding: '10px 12px' }}>
@@ -258,8 +290,23 @@ export default function ApprovalsPage() {
                     </div>
                     <span className={`badge badge-${o.status.toLowerCase()}`}>{o.rawStatus || o.status}</span>
                   </div>
-                  <div style={{ fontSize: 13, color: 'var(--text-primary)', marginBottom: 4, fontWeight: 500 }}>{o.products}</div>
-                  <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 4, lineHeight: 1.4 }}>{o.quantity} {o.measurementUnit} × {fmt(o.unitPrice)}</div>
+                  <div style={{ marginBottom: 8 }}>
+                    {o.lineItems && o.lineItems.length > 0 ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                        {o.lineItems.map((li, idx) => (
+                          <div key={idx} style={{ paddingBottom: idx < o.lineItems.length - 1 ? 6 : 0, borderBottom: idx < o.lineItems.length - 1 ? '1px dashed var(--border)' : 'none' }}>
+                            <div style={{ fontSize: 13, color: 'var(--text-primary)', marginBottom: 2, fontWeight: 500 }}>{li.name}</div>
+                            <div style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.4 }}>{li.qty} {li.unit} × {fmt(li.unitPrice)}</div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <>
+                        <div style={{ fontSize: 13, color: 'var(--text-primary)', marginBottom: 4, fontWeight: 500 }}>{o.products}</div>
+                        <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 4, lineHeight: 1.4 }}>{o.quantity} {o.measurementUnit} × {fmt(o.unitPrice)}</div>
+                      </>
+                    )}
+                  </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--border)' }}>
                     <div>
                       <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{o.vendor}</div>

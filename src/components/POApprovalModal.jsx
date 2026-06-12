@@ -433,7 +433,8 @@ export default function POApprovalModal({ po, onClose }) {
         signatureImageUrl: signatureUrl,
       }
 
-      await approve([po.id], user?.name, approvalData)
+      const dbIds = po.dbIds || [po.id]
+      await approve(dbIds, user?.name, approvalData)
       toast(`PO ${po.orderId} approved successfully`, 'success')
       addNotification('PO Approved', `${po.orderId} — ${po.vendor} — ₹${Number(po.amount || 0).toLocaleString('en-IN')} approved`, 'approval')
       onClose()

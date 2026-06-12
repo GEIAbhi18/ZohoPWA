@@ -87,7 +87,28 @@ export function ApprovalsProvider({ children }) {
         .order('created_at', { ascending: false })
 
       if (sbError) throw sbError
-      setOrders((data || []).map(mapRow))
+      
+      const mapped = (data || []).map(mapRow)
+      const map = new Map()
+      mapped.forEach(o => {
+        if (!map.has(o.orderId)) {
+          map.set(o.orderId, {
+            ...o,
+            dbIds: [o.id],
+            id: o.orderId,
+          })
+        } else {
+          const existing = map.get(o.orderId)
+          existing.dbIds.push(o.id)
+          // Add product name only if it's not already in the list
+          if (!existing.products.includes(o.products)) {
+            existing.products += ', ' + o.products
+          }
+          existing.amount += o.amount
+          existing.lineItems.push(...o.lineItems)
+        }
+      })
+      setOrders(Array.from(map.values()))
     } catch (err) {
       console.error('[Supabase] fetch failed:', err)
       setError(err.message || 'Failed to fetch orders')
@@ -121,11 +142,11 @@ export function ApprovalsProvider({ children }) {
   }, [fetchOrders])
 
   // ── Approve ──
-  async function approve(ids, _user, approvalData = {}) {
+  async function approve(dbIds, _user, approvalData = {}) {
     // Optimistic update
     setOrders(prev =>
       prev.map(o =>
-        ids.includes(o.id) && o.status === 'Pending'
+        o.dbIds && o.dbIds.some(id => dbIds.includes(id)) && o.status === 'Pending'
           ? {
               ...o,
               status: 'Approved',
@@ -158,7 +179,7 @@ export function ApprovalsProvider({ children }) {
     const { error: sbError } = await supabase
       .from('purchase_orders_for_approval')
       .update(updatePayload)
-      .in('id', ids)
+      .in('id', dbIds)
 
     if (sbError) {
       console.error('[Supabase] approve failed:', sbError)
@@ -168,10 +189,10 @@ export function ApprovalsProvider({ children }) {
 
 
   // ── Reject ──
-  async function reject(ids, _reason, _user) {
+  async function reject(dbIds, _reason, _user) {
     setOrders(prev =>
       prev.map(o =>
-        ids.includes(o.id) && o.status === 'Pending'
+        o.dbIds && o.dbIds.some(id => dbIds.includes(id)) && o.status === 'Pending'
           ? { ...o, status: 'Rejected', rawStatus: 'Rejected', rejectionReason: _reason }
           : o
       )
@@ -180,7 +201,7 @@ export function ApprovalsProvider({ children }) {
     const { error: sbError } = await supabase
       .from('purchase_orders_for_approval')
       .update({ status: 'Rejected', updated_at: new Date().toISOString() })
-      .in('id', ids)
+      .in('id', dbIds)
 
     if (sbError) {
       console.error('[Supabase] reject failed:', sbError)
