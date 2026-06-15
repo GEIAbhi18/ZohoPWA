@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react'
-import { Search, Download, Eye, RefreshCw, FileText, Loader2, Clock, CheckCircle2, Truck, PackageCheck, ClipboardList } from 'lucide-react'
+import { Search, Download, Eye, RefreshCw, FileText, Loader2, Clock, CheckCircle2, Truck, PackageCheck, ClipboardList, ExternalLink } from 'lucide-react'
 import { useApprovals } from '../context/ApprovalsContext'
 import PODocumentModal from './PODocumentModal'
 
@@ -158,7 +158,7 @@ export default function OrdersPage() {
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
               <thead>
                 <tr style={{ background: 'var(--surface)', borderBottom: '1px solid var(--border)' }}>
-                  {['Project', 'Vendor', 'Net Total', 'Shipping Address', 'Status', 'PO Document'].map(h => (
+                  {['Project', 'Vendor', 'Net Total', 'Shipping Address', 'Status', 'Reference Document', 'PO Document'].map(h => (
                     <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontWeight: 600, fontSize: 12, color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>{h}</th>
                   ))}
                 </tr>
@@ -166,7 +166,7 @@ export default function OrdersPage() {
               <tbody>
                 {filtered.length === 0 ? (
                   <tr>
-                    <td colSpan={6} style={{ padding: '48px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 14 }}>
+                    <td colSpan={7} style={{ padding: '48px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 14 }}>
                       No approved orders found
                     </td>
                   </tr>
@@ -195,6 +195,29 @@ export default function OrdersPage() {
                       }}>
                         Order Confirmed
                       </span>
+                    </td>
+                    <td style={{ padding: '12px 14px' }}>
+                      {o.referenceDocument ? (
+                        <a
+                          href={o.referenceDocument}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="btn orders-ref-doc-btn"
+                          style={{
+                            padding: '6px 14px', fontSize: 12, fontWeight: 500,
+                            background: '#EBF5FF', color: '#1B3A6B', border: '1px solid #B3D4FC',
+                            borderRadius: 6, cursor: 'pointer', transition: 'all 150ms',
+                            display: 'inline-flex', alignItems: 'center', gap: 5,
+                            textDecoration: 'none',
+                          }}
+                        >
+                          <FileText size={13} />
+                          Reference Document
+                          <ExternalLink size={11} style={{ opacity: 0.6 }} />
+                        </a>
+                      ) : (
+                        <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>—</span>
+                      )}
                     </td>
                     <td style={{ padding: '12px 14px' }}>
                       <button
@@ -238,18 +261,38 @@ export default function OrdersPage() {
               <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 8 }}>{o.billingAddress || o.shippingAddress || 'N/A'}</div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 10, borderTop: '1px solid var(--border)' }}>
                 <div style={{ fontSize: 16, fontWeight: 700, fontFamily: 'var(--mono)', color: 'var(--navy)' }}>{fmt(o.amount)}</div>
-                <button
-                  className="btn"
-                  onClick={() => setViewPODoc(o)}
-                  style={{
-                    padding: '6px 14px', fontSize: 12, fontWeight: 500,
-                    background: '#EBF5FF', color: '#1B3A6B', border: '1px solid #B3D4FC',
-                    borderRadius: 6, display: 'flex', alignItems: 'center', gap: 5,
-                  }}
-                >
-                  <FileText size={13} />
-                  PO Document
-                </button>
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                  {o.referenceDocument && (
+                    <a
+                      href={o.referenceDocument}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn orders-ref-doc-btn"
+                      style={{
+                        padding: '6px 12px', fontSize: 11, fontWeight: 500,
+                        background: '#EBF5FF', color: '#1B3A6B', border: '1px solid #B3D4FC',
+                        borderRadius: 6, display: 'flex', alignItems: 'center', gap: 4,
+                        textDecoration: 'none',
+                      }}
+                    >
+                      <FileText size={12} />
+                      Ref Doc
+                      <ExternalLink size={10} style={{ opacity: 0.6 }} />
+                    </a>
+                  )}
+                  <button
+                    className="btn"
+                    onClick={() => setViewPODoc(o)}
+                    style={{
+                      padding: '6px 12px', fontSize: 11, fontWeight: 500,
+                      background: '#EBF5FF', color: '#1B3A6B', border: '1px solid #B3D4FC',
+                      borderRadius: 6, display: 'flex', alignItems: 'center', gap: 4,
+                    }}
+                  >
+                    <FileText size={12} />
+                    PO Doc
+                  </button>
+                </div>
               </div>
             </div>
           ))}
@@ -267,6 +310,10 @@ export default function OrdersPage() {
       <style>{`
         @keyframes spin { to { transform: rotate(360deg) } }
         .orders-po-doc-btn:hover {
+          background: #D4E8FF !important;
+          border-color: #7BB4F5 !important;
+        }
+        .orders-ref-doc-btn:hover {
           background: #D4E8FF !important;
           border-color: #7BB4F5 !important;
         }

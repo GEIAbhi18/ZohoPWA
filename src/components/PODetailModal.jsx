@@ -1,5 +1,5 @@
 import React from 'react'
-import { X, CheckCircle, XCircle, Building2, MapPin, User, Calendar, Hash, Package, FileText, CreditCard } from 'lucide-react'
+import { X, CheckCircle, XCircle, Building2, MapPin, User, Calendar, Hash, Package, FileText, CreditCard, ExternalLink } from 'lucide-react'
 
 function fmt(n) { return '₹' + Number(n || 0).toLocaleString('en-IN') }
 function fmtDate(d) { if (!d) return '-'; return new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) }
@@ -80,6 +80,60 @@ export default function PODetailModal({ po, onClose, onApprove, onReject, onOpen
               )}
             </div>
           )}
+
+          {/* Reference Document */}
+          <div style={{ marginBottom: 14 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 6 }}>
+              <FileText size={12} color="var(--text-muted)" />
+              <span style={{ fontSize: 10, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: 600 }}>Reference Document</span>
+            </div>
+            {po.referenceDocument ? (
+              <a
+                href={po.referenceDocument}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="ref-doc-btn"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  padding: '7px 14px',
+                  fontSize: 12,
+                  fontWeight: 500,
+                  background: '#EBF5FF',
+                  color: '#1B3A6B',
+                  border: '1px solid #B3D4FC',
+                  borderRadius: 6,
+                  cursor: 'pointer',
+                  textDecoration: 'none',
+                  transition: 'all 150ms',
+                }}
+              >
+                <FileText size={13} />
+                Reference Document
+                <ExternalLink size={11} style={{ opacity: 0.6 }} />
+              </a>
+            ) : (
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  padding: '7px 14px',
+                  fontSize: 12,
+                  fontWeight: 500,
+                  background: '#F1F5F9',
+                  color: '#94A3B8',
+                  border: '1px solid #E2E8F0',
+                  borderRadius: 6,
+                  cursor: 'default',
+                }}
+              >
+                <FileText size={13} />
+                Reference Document
+              </span>
+            )}
+          </div>
 
           {/* Cost Breakdown */}
           <div style={{ marginBottom: 8, fontSize: 11, fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Cost Breakdown</div>
@@ -216,6 +270,10 @@ export default function PODetailModal({ po, onClose, onApprove, onReject, onOpen
         @media (max-width: 599px) {
           .line-items-mobile { display: flex !important; }
           .line-items-desktop { display: none !important; }
+        }
+        .ref-doc-btn:hover {
+          background: #D4E8FF !important;
+          border-color: #7BB4F5 !important;
         }
       `}</style>
     </div>

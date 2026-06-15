@@ -48,6 +48,9 @@ function mapRow(row) {
     approvedAt: row.approved_at || '',
     rejectionReason: row.rejection_reason || '',
 
+    // Reference document link from Supabase
+    referenceDocument: row.reference_document || '',
+
     // Construct a single-item lineItems array from flat columns
     lineItems: [
       {
