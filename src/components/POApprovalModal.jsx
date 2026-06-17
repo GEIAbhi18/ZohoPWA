@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import { useNotifications } from '../context/NotificationContext'
 import { uploadSignature, uploadAttachment } from '../lib/supabaseStorage'
+import { UAParser } from 'ua-parser-js'
 
 const BILLING_ADDRESSES = [
   'O P KHURANA & SON',
@@ -417,6 +418,17 @@ export default function POApprovalModal({ po, onClose }) {
         }
       }
 
+      const parser = new UAParser()
+      const result = parser.getResult()
+      let deviceNameStr = ''
+      if (result.device.vendor && result.device.model) {
+        deviceNameStr = `${result.device.vendor} ${result.device.model}`
+      } else if (result.os.name) {
+        deviceNameStr = result.os.name
+      } else {
+        deviceNameStr = 'Unknown Device'
+      }
+
       const approvalData = {
         poId: po.id,
         orderId: po.orderId,
@@ -431,6 +443,7 @@ export default function POApprovalModal({ po, onClose }) {
         termsAndConditions: termsAndConditions,
         attachmentUrl: attachmentUrl,
         signatureImageUrl: signatureUrl,
+        deviceName: deviceNameStr,
       }
 
       const dbIds = po.dbIds || [po.id]
