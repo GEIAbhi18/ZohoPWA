@@ -158,7 +158,7 @@ export default function OrdersPage() {
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
               <thead>
                 <tr style={{ background: 'var(--surface)', borderBottom: '1px solid var(--border)' }}>
-                  {['Project', 'Vendor', 'Net Total', 'Shipping Address', 'Status', 'Reference Document', 'PO Document'].map(h => (
+                  {['Project', 'Vendor', 'Net Total', 'Shipping Address', 'Status', "Approver's Device", 'Reference Document', 'PO Document'].map(h => (
                     <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontWeight: 600, fontSize: 12, color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>{h}</th>
                   ))}
                 </tr>
@@ -166,7 +166,7 @@ export default function OrdersPage() {
               <tbody>
                 {filtered.length === 0 ? (
                   <tr>
-                    <td colSpan={7} style={{ padding: '48px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 14 }}>
+                    <td colSpan={8} style={{ padding: '48px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 14 }}>
                       No approved orders found
                     </td>
                   </tr>
@@ -195,6 +195,9 @@ export default function OrdersPage() {
                       }}>
                         Order Confirmed
                       </span>
+                    </td>
+                    <td style={{ padding: '12px 14px', color: 'var(--text-secondary)', fontSize: 12 }}>
+                      {o.deviceName || '—'}
                     </td>
                     <td style={{ padding: '12px 14px' }}>
                       {o.referenceDocument ? (
@@ -259,6 +262,11 @@ export default function OrdersPage() {
               <div style={{ fontSize: 13, color: 'var(--text-primary)', marginBottom: 4, fontWeight: 500 }}>{o.products || 'N/A'}</div>
               <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 2 }}>{o.vendor}</div>
               <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 8 }}>{o.billingAddress || o.shippingAddress || 'N/A'}</div>
+              {o.deviceName && (
+                <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 8 }}>
+                  Approver's Device: <span style={{fontWeight: 500}}>{o.deviceName}</span>
+                </div>
+              )}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 10, borderTop: '1px solid var(--border)' }}>
                 <div style={{ fontSize: 16, fontWeight: 700, fontFamily: 'var(--mono)', color: 'var(--navy)' }}>{fmt(o.amount)}</div>
                 <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>

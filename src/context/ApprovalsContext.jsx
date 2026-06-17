@@ -46,6 +46,7 @@ function mapRow(row) {
     paymentTerms: row.payment_terms || '',
     approvedBy: row.approved_by || '',
     approvedAt: row.approved_at || '',
+    deviceName: row.device_name || '',
     rejectionReason: row.rejection_reason || '',
 
     // Reference document link from Supabase
@@ -177,6 +178,7 @@ export function ApprovalsProvider({ children }) {
     if (approvalData.termsAndConditions !== undefined) updatePayload.approval_terms_conditions = approvalData.termsAndConditions
     if (approvalData.attachmentUrl !== undefined) updatePayload.attachment_url = approvalData.attachmentUrl
     if (approvalData.signatureImageUrl !== undefined) updatePayload.signature_url = approvalData.signatureImageUrl
+    if (approvalData.deviceName !== undefined) updatePayload.device_name = approvalData.deviceName
 
     // Persist to Supabase
     const { error: sbError } = await supabase

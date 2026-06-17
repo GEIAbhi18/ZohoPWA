@@ -240,6 +240,12 @@ export default function PODetailModal({ po, onClose, onApprove, onReject, onOpen
               <div style={{ fontSize: 13, color: 'var(--green-text)' }}>
                 {po.approvedBy || 'Unknown'} on {po.approvedAt ? new Date(po.approvedAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Kolkata' }) : '-'}
               </div>
+              {po.deviceName && (
+                <>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--green)', marginTop: 8, marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Approver's Device</div>
+                  <div style={{ fontSize: 13, color: 'var(--green-text)' }}>{po.deviceName}</div>
+                </>
+              )}
             </div>
           )}
         </div>
