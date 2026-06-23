@@ -93,7 +93,7 @@ export function ApprovalsProvider({ children }) {
         .order('created_at', { ascending: false })
 
       if (sbError) throw sbError
-      
+
       const mapped = (data || []).map(mapRow)
       const map = new Map()
       mapped.forEach(o => {
@@ -157,12 +157,12 @@ export function ApprovalsProvider({ children }) {
       prev.map(o =>
         o.dbIds && o.dbIds.some(id => dbIds.includes(id)) && o.status === 'Pending'
           ? {
-              ...o,
-              status: 'Approved',
-              rawStatus: 'Approved',
-              approvedBy: approvalData.approvedBy || _user || null,
-              approvedAt: approvalData.approvedAt || new Date().toISOString(),
-            }
+            ...o,
+            status: 'Approved',
+            rawStatus: 'Approved',
+            approvedBy: approvalData.approvedBy || _user || null,
+            approvedAt: approvalData.approvedAt || new Date().toISOString(),
+          }
           : o
       )
     )
@@ -239,3 +239,4 @@ export function ApprovalsProvider({ children }) {
 }
 
 export const useApprovals = () => useContext(ApprovalsContext)
+
