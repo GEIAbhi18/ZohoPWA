@@ -109,6 +109,9 @@ export function ApprovalsProvider({ children }) {
             existing.products += ', ' + o.products
           }
           existing.amount += o.amount
+          existing.taxAmount = (existing.taxAmount || 0) + (o.taxAmount || 0)
+          existing.discountAmount = (existing.discountAmount || 0) + (o.discountAmount || 0)
+          existing.shippingCharge = (existing.shippingCharge || 0) + (o.shippingCharge || 0)
           existing.lineItems.push(...o.lineItems)
         }
       })
