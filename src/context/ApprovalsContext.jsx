@@ -60,6 +60,8 @@ function mapRow(row) {
         unit: row.measurement_unit || '',
         unitPrice: row.unit_price ?? 0,
         total: row.total_cost ?? 0,
+        taxRate: row.tax_rate ?? 0,
+        taxAmount: row.tax_amount ?? 0,
       },
     ],
   }
@@ -109,7 +111,7 @@ export function ApprovalsProvider({ children }) {
             existing.products += ', ' + o.products
           }
           existing.amount += o.amount
-          existing.taxAmount = (existing.taxAmount || 0) + (o.taxAmount || 0)
+          // Global taxAmount aggregation removed as requested; keeping discount and shipping
           existing.discountAmount = (existing.discountAmount || 0) + (o.discountAmount || 0)
           existing.shippingCharge = (existing.shippingCharge || 0) + (o.shippingCharge || 0)
           existing.lineItems.push(...o.lineItems)

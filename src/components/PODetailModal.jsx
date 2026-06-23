@@ -148,17 +148,17 @@ export default function PODetailModal({ po, onClose, onApprove, onReject, onOpen
                   <span>@ {fmt(li.unitPrice)}</span>
                   <span style={{ fontFamily: 'var(--mono)', fontWeight: 700, color: 'var(--navy)', fontSize: 12 }}>{fmt(li.total)}</span>
                 </div>
+                {li.taxAmount > 0 && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--text-secondary)', marginTop: 4, paddingTop: 4, borderTop: '1px dashed var(--border)' }}>
+                    <span>Tax ({li.taxRate}%)</span>
+                    <span style={{ fontFamily: 'var(--mono)' }}>{fmt(li.taxAmount)}</span>
+                  </div>
+                )}
               </div>
             ))}
             {/* Extra cost rows */}
-            {(po.taxAmount > 0 || po.discountAmount > 0 || po.shippingCharge > 0) && (
+            {(po.discountAmount > 0 || po.shippingCharge > 0) && (
               <div style={{ background: 'var(--surface)', borderRadius: 10, padding: '10px 12px' }}>
-                {po.taxAmount > 0 && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--text-secondary)', padding: '2px 0' }}>
-                    <span>Tax ({po.taxRate}%)</span>
-                    <span style={{ fontFamily: 'var(--mono)' }}>{fmt(po.taxAmount)}</span>
-                  </div>
-                )}
                 {po.discountAmount > 0 && (
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--green)', padding: '2px 0' }}>
                     <span>Discount</span>
@@ -185,7 +185,7 @@ export default function PODetailModal({ po, onClose, onApprove, onReject, onOpen
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
               <thead>
                 <tr style={{ background: 'var(--surface)' }}>
-                  {['Item', 'Qty', 'Unit', 'Unit Price', 'Subtotal'].map(h => (
+                  {['Item', 'Qty', 'Unit', 'Unit Price', 'Tax', 'Subtotal'].map(h => (
                     <th key={h} style={{ padding: '8px 10px', textAlign: h === 'Item' ? 'left' : 'right', fontWeight: 600, color: 'var(--text-secondary)', fontSize: 11, whiteSpace: 'nowrap' }}>{h}</th>
                   ))}
                 </tr>
@@ -197,30 +197,27 @@ export default function PODetailModal({ po, onClose, onApprove, onReject, onOpen
                     <td style={{ padding: '9px 10px', textAlign: 'right', color: 'var(--text-secondary)' }}>{li.qty}</td>
                     <td style={{ padding: '9px 10px', textAlign: 'right', color: 'var(--text-secondary)' }}>{li.unit}</td>
                     <td style={{ padding: '9px 10px', textAlign: 'right', color: 'var(--text-secondary)', fontFamily: 'var(--mono)', whiteSpace: 'nowrap' }}>{fmt(li.unitPrice)}</td>
+                    <td style={{ padding: '9px 10px', textAlign: 'right', color: 'var(--text-secondary)', fontFamily: 'var(--mono)', whiteSpace: 'nowrap' }}>
+                      {li.taxAmount > 0 ? `${li.taxRate}% (${fmt(li.taxAmount)})` : '-'}
+                    </td>
                     <td style={{ padding: '9px 10px', textAlign: 'right', fontWeight: 600, color: 'var(--text-primary)', fontFamily: 'var(--mono)', whiteSpace: 'nowrap' }}>{fmt(li.total)}</td>
                   </tr>
                 ))}
-                {/* Tax, discount, shipping rows */}
-                {po.taxAmount > 0 && (
-                  <tr style={{ borderTop: '1px solid var(--border)' }}>
-                    <td colSpan={4} style={{ padding: '7px 10px', textAlign: 'right', fontSize: 11, color: 'var(--text-secondary)' }}>Tax ({po.taxRate}%)</td>
-                    <td style={{ padding: '7px 10px', textAlign: 'right', fontFamily: 'var(--mono)', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>{fmt(po.taxAmount)}</td>
-                  </tr>
-                )}
+                {/* Discount, shipping rows */}
                 {po.discountAmount > 0 && (
                   <tr style={{ borderTop: '1px solid var(--border)' }}>
-                    <td colSpan={4} style={{ padding: '7px 10px', textAlign: 'right', fontSize: 11, color: 'var(--green)' }}>Discount</td>
+                    <td colSpan={5} style={{ padding: '7px 10px', textAlign: 'right', fontSize: 11, color: 'var(--green)' }}>Discount</td>
                     <td style={{ padding: '7px 10px', textAlign: 'right', fontFamily: 'var(--mono)', color: 'var(--green)', whiteSpace: 'nowrap' }}>-{fmt(po.discountAmount)}</td>
                   </tr>
                 )}
                 {po.shippingCharge > 0 && (
                   <tr style={{ borderTop: '1px solid var(--border)' }}>
-                    <td colSpan={4} style={{ padding: '7px 10px', textAlign: 'right', fontSize: 11, color: 'var(--text-secondary)' }}>Shipping</td>
+                    <td colSpan={5} style={{ padding: '7px 10px', textAlign: 'right', fontSize: 11, color: 'var(--text-secondary)' }}>Shipping</td>
                     <td style={{ padding: '7px 10px', textAlign: 'right', fontFamily: 'var(--mono)', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>{fmt(po.shippingCharge)}</td>
                   </tr>
                 )}
                 <tr style={{ borderTop: '2px solid var(--border)', background: 'var(--surface)' }}>
-                  <td colSpan={4} style={{ padding: '10px', fontWeight: 700, fontSize: 13, color: 'var(--text-primary)', textAlign: 'right' }}>Final Total</td>
+                  <td colSpan={5} style={{ padding: '10px', fontWeight: 700, fontSize: 13, color: 'var(--text-primary)', textAlign: 'right' }}>Final Total</td>
                   <td style={{ padding: '10px', fontWeight: 800, fontSize: 15, color: 'var(--navy)', textAlign: 'right', fontFamily: 'var(--mono)', whiteSpace: 'nowrap' }}>{fmt(po.amount)}</td>
                 </tr>
               </tbody>
