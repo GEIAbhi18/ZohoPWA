@@ -109,7 +109,7 @@ export default function LoginPage() {
             fontSize: 11, color: 'var(--text-muted)', textAlign: 'center', marginTop: 10,
             background: '#F0F7FF', padding: '6px 10px', borderRadius: 6,
           }}>
-            Only <strong>@goodearthinfra.in</strong> work emails are allowed
+            Only <strong>authorized personnel</strong> are allowed to login
           </div>
 
           {/* Divider */}

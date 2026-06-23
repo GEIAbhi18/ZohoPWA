@@ -4,16 +4,15 @@ import { auth, googleProvider } from '../lib/firebase'
 
 const AuthContext = createContext(null)
 
-// Allowed domains and developer account
-const ALLOWED_DOMAINS = ['goodearthinfra.in']
+// Allowed emails and developer account
+const ALLOWED_EMAILS = ['kanav@goodearthinfra.in']
 const DEVELOPER_EMAIL = 'digitaltransformationgei@gmail.com'
 const DEVELOPER_PASSWORD = 'dev@123'
 
 function isAllowedEmail(email) {
   if (!email) return false
   if (email.toLowerCase() === DEVELOPER_EMAIL.toLowerCase()) return true
-  const domain = email.split('@')[1]
-  return ALLOWED_DOMAINS.includes(domain?.toLowerCase())
+  return ALLOWED_EMAILS.includes(email.toLowerCase())
 }
 
 export function AuthProvider({ children }) {
@@ -53,7 +52,7 @@ export function AuthProvider({ children }) {
         await signOut(auth)
         return {
           ok: false,
-          error: `Access denied. Only @goodearthinfra.in work emails are allowed. (${email} is not authorized)`,
+          error: `Access denied. Only authorized users can login. (${email} is not authorized)`,
         }
       }
 
