@@ -71,7 +71,7 @@ function mapRow(row) {
 function normaliseStatus(raw) {
   if (!raw) return 'Pending'
   const s = raw.toLowerCase()
-  if (s.includes('approved') || s.includes('accepted')) return 'Approved'
+  if (s.includes('approved') || s.includes('accepted') || s.includes('confirmed')) return 'Approved'
   if (s.includes('rejected') || s.includes('declined') || s.includes('denied') || s.includes('cancelled')) return 'Rejected'
   // everything else (including "Waiting For …") is treated as pending
   return 'Pending'
