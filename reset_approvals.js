@@ -10,6 +10,7 @@ envFile.split('\n').forEach(line => {
   }
 })
 
+
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL
 const SUPABASE_ANON_KEY = process.env.VITE_SUPABASE_ANON_KEY
 
@@ -17,7 +18,7 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
 async function run() {
   console.log('Fetching recent approved POs with empty signature_url...')
-  
+
   // Find approved POs
   const { data, error } = await supabase
     .from('purchase_orders_for_approval')
@@ -26,24 +27,24 @@ async function run() {
     .is('signature_url', null)
     .order('updated_at', { ascending: false })
     .limit(5)
-    
+
   if (error) {
     console.error('Error fetching data:', error)
     return
   }
-  
+
   if (!data || data.length === 0) {
     console.log('No recent approved requests found with empty signature.')
     return
   }
-  
+
   console.log('Found the following requests to reset:')
   console.log(data)
-  
+
   const ids = data.map(row => row.id)
-  
+
   console.log('Resetting these requests to Pending...')
-  
+
   const { error: updateError } = await supabase
     .from('purchase_orders_for_approval')
     .update({
@@ -59,7 +60,7 @@ async function run() {
       approved_at: null
     })
     .in('id', ids)
-    
+
   if (updateError) {
     console.error('Error updating records:', updateError)
   } else {
